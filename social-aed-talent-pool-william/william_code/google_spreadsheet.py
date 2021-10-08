@@ -40,9 +40,9 @@ def mssql_insert(insert_text):
 def mssql_turncate(db_table):
     conn = pymssql.connect(
         host='122.116.168.75',
-        user='william_tien',
-        password='william_tien',
-        database='william_test_db'
+        user='socialaed_tp_user',
+        password='VGec6ddCP6PtNXeO',
+        database='socialaed_talent_pool'
         )
     cursor = conn.cursor(as_dict=True)
 
@@ -60,14 +60,6 @@ def google_sheet(sheet_url):
     # google_sheet_url
     sh = gc.open_by_url(sheet_url)
     return sh.worksheets()
-
-# 抓檔案第一個分頁名稱
-def google_sheets_name_1(sheet_url):
-    # google_sheet_key
-    gc = pygsheets.authorize(service_account_file=google_key)
-    # google_sheet_url
-    sh = gc.open_by_url(sheet_url)
-    return sh.sheet1
 
 # 抓檔案名稱
 def google_spreadsheet_name(sheet_url):
@@ -92,20 +84,6 @@ def regex_sheet_name(google_sheets_name):
     google_sheets_name = match.group(1)
     return google_sheets_name
 
-# 抓出每個cloumn資料更換成 mssql insert into 的語法，寫成list
-def google_sheet_value_list(worksheets,url):
-    insert_data_list = []
-    for google_sheets_name_list in worksheets:
-        google_spreadsheet_name1 = google_spreadsheet_name(url)
-        google_sheet_name = regex_sheet_name(google_sheets_name_list)
-        google_sheets_df = google_sheets_name_list.get_as_df(start='A1', index_colum=0, empty_value='', include_tailing_empty=False)
-        for order_id,ticket_number,payment_status,order_name,order_email,order_cellphone,attendence_name,attendence_email,attendence_cellphone,order_time,ticket_use_time,ticket_group,ticket_name,ticket_detail,ticket_price,payment_time,payment_method,credit_card_last_4_number,first_ticket_check_time,first_ticket_check_note,last_ticket_check_time,last_ticket_check_note,ticket_check_times,ticket_check_notify,note,cancel_reason,from_where,invite_ticket_organization,sex,bdate,industry,title,line_id,any_comment in zip(google_sheets_df['訂單編號'],google_sheets_df['票號'],google_sheets_df['狀態'],google_sheets_df['訂購人姓名'],google_sheets_df['訂購人Email'],google_sheets_df['訂購人電話'],google_sheets_df['參加人姓名'],google_sheets_df['參加人Email'],google_sheets_df['參加人電話'],google_sheets_df['報名時間(GTM+8)'],google_sheets_df['有效時間(GTM+8)'],google_sheets_df['票種分組'],google_sheets_df['票券名稱'],google_sheets_df['票券細節'],google_sheets_df['票價(NT)'],google_sheets_df['付款時間(GTM+8)'],google_sheets_df['付款方式'],google_sheets_df['信用卡末四碼'],google_sheets_df['首次驗票時間(GTM+8)'],google_sheets_df['首次驗票備註'],google_sheets_df['最後驗票時間(GTM+8)'],google_sheets_df['最後驗票備註'],google_sheets_df['驗票次數'],google_sheets_df['驗票通知'],google_sheets_df['備註'],google_sheets_df['取消原因'],google_sheets_df['你是從哪裡得知圓桌早餐的活動呢？'],google_sheets_df['若您選擇公關票，請問配票單位為？'],google_sheets_df['性別'],google_sheets_df['出生年月日'],google_sheets_df['你的行業別是？'],google_sheets_df['你的職位是？'],google_sheets_df['Line帳號'],google_sheets_df['有什麼話想跟我們說？']):
-            data_list= (google_spreadsheet_name1,google_sheet_name,order_id,ticket_number,payment_status,order_name,order_email,order_cellphone,attendence_name,attendence_email,attendence_cellphone,order_time,ticket_use_time,ticket_group,ticket_name,ticket_detail,ticket_price,payment_time,payment_method,credit_card_last_4_number,first_ticket_check_time,first_ticket_check_note,last_ticket_check_time,last_ticket_check_note,ticket_check_times,ticket_check_notify,note,cancel_reason,from_where,invite_ticket_organization,sex,bdate,industry,title,line_id,any_comment)
-            insert_mssql = f"INSERT INTO [dbo].[{mssql_table}]  VALUES('{google_spreadsheet_name1}','{google_sheet_name}','{order_id}','{ticket_number}','{payment_status}','{order_name}','{order_email}','{order_cellphone}','{attendence_name}','{attendence_email}','{attendence_cellphone}','{order_time}','{ticket_use_time}','{ticket_group}','{ticket_name}','{ticket_detail}','{ticket_price}','{payment_time}','{payment_method}','{credit_card_last_4_number}','{first_ticket_check_time}','{first_ticket_check_note}','{last_ticket_check_time}','{last_ticket_check_note}','{ticket_check_times}','{ticket_check_notify}','{note}','{cancel_reason}','{from_where}','{invite_ticket_organization}','{sex}','{bdate}','{industry}','{title}','{line_id}','{any_comment}')"
-            insert_data_list.append(insert_mssql)
-            # mssql_insert(insert_mssql)
-            # print(data_list)
-    return insert_data_list
 
 # create new table table_header=新的google_spreadsheet裡面的第一分頁cloumn標題 new_table_name=google_spreadsheet檔案名稱
 def sql_create_table(new_table_name,url):
@@ -118,32 +96,28 @@ def sql_create_table(new_table_name,url):
     sql_create_table_tail = '''
         PRIMARY KEY ([id])
         )'''
-
+    x=0
     for table_header_list in google_sheet_title(url):
         # print(table_header_list)
+        
         if table_header_list != "":
-            sql_create_table_title=sql_create_table_title+f'  [{table_header_list}] varchar(100),'
+            sql_create_table_title=sql_create_table_title+f'  [{table_header_list}] varchar(200),'
         else:
-            print('no')
-            sql_create_table_title=sql_create_table_title+f'  [Null] varchar(50),'
-
+            x=x+1
+            text ='Null'+str(x)
+            # print(text)
+            sql_create_table_title=sql_create_table_title+f'  [{text}] varchar(10),'
+    # print(sql_create_table_title+sql_create_table_tail)
 
     return sql_create_table_title+sql_create_table_tail
 
 
-def google_sheet_value_list1(workshtable_name,url):
-    google_sheet_name = google_sheet(url)[1]
-    google_sheet_header = google_sheet_name.get_all_values(returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False)
-    gg = str(google_sheet_header[0]).replace('[','').replace(']','')#標題
-
-# print(google_sheet_value_list1(google_sheet(survey_url[0])))
-
-def insert_text(table_name,url):
-    google_sheet_name = google_sheet(url)[1]
+def insert_text(table_name,url,sheet_name,index):
+    google_sheet_name = google_sheet(url)[index]
     google_sheet_header = google_sheet_name.get_all_values(returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=False)
     gg = str(google_sheet_header[0]).replace('[','').replace(']','')#標題
     kk =str(google_sheet_header[1]).replace('[','').replace(']','')
-    oo = [f"INSERT INTO [dbo].[{table_name}]  VALUES('第七場',{str(google_sheet_header[i+1]).replace('[','').replace(']','')})" for i in range(len(google_sheet_header)-1)]
+    oo = [f"INSERT INTO [dbo].[{table_name}]  VALUES('{sheet_name}',{str(google_sheet_header[i+1]).replace('[','').replace(']','')})" for i in range(len(google_sheet_header)-1)]
     return oo
 
 def search_mssql_table1(mssql_name,url):
@@ -161,25 +135,14 @@ def search_mssql_table1(mssql_name,url):
     # print(type(all_table_list))
     
     if mssql_name in [all_table["TABLE_NAME"] for all_table in all_table_list]:
-        print(mssql_name+"已存在")
+        print(mssql_name+"已存在!")
 
-        return
+        pass
     else:
-        print("no")
+        print("開始建表")
         mssql_insert(sql_create_table(mssql_name,url))
         print("建表完成")
     # print(next((data for data in all_table_list if data.get('TABLE_NAME')==mssql_name), "找不到table"))
     # 關閉資料庫連線
     conn.commit()
     conn.close()
-
-# google_sheet_name = google_sheet(survey_url[0])[0]
-# google_sheet_header = google_sheet_name.get_all_values(returnas='matrix', majdim='ROWS', include_tailing_empty=True, include_tailing_empty_rows=True)
-# gg = str(google_sheet_header[0]).replace('[','').replace(']','')#標題
-# kk =str(google_sheet_header[1]).replace('[','').replace(']','')
-# print(len(google_sheet_header[0]))
-# print(len(google_sheet_header[1]))
-# print(google_sheet_header[1])
-# print(google_sheet_header[0])
-# print(sql_create_table('fffff',survey_url[0]))
-

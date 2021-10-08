@@ -1,9 +1,7 @@
-import pygsheets
 import  pymssql
 import json
 # import pandas as pd
 import configparser
-import  re
 from google_spreadsheet import google_sheet_title
 
 # 檔案：google_spreadsheet
@@ -67,10 +65,3 @@ def sql_create_table(new_table_name,url):
         sql_create_table_title=sql_create_table_title+f'  [{table_header_list}] varchar(50),'
 
     return sql_create_table_title+sql_create_table_tail
-
-
-
-
-
-
-# print(search_mssql_table1('rrrrr'))
